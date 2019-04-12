@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="author" content="Michael Laimighofer" />
+
+<meta name="date" content="2015-08-26" />
+
+<title>SurvRank vignette</title>
+
+
+
+
+<link href="data:text/css,body%20%7B%0A%20%20background%2Dcolor%3A%20%23fff%3B%0A%20%20margin%3A%201em%20auto%3B%0A%20%20max%2Dwidth%3A%20700px%3B%0A%20%20overflow%3A%20visible%3B%0A%20%20padding%2Dleft%3A%202em%3B%0A%20%20padding%2Dright%3A%202em%3B%0A%20%20font%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0A%20%20font%2Dsize%3A%2014px%3B%0A%20%20line%2Dheight%3A%201%2E35%3B%0A%7D%0A%0A%23header%20%7B%0A%20%20text%2Dalign%3A%20center%3B%0A%7D%0A%0A%23TOC%20%7B%0A%20%20clear%3A%20both%3B%0A%20%20margin%3A%200%200%2010px%2010px%3B%0A%20%20padding%3A%204px%3B%0A%20%20width%3A%20400px%3B%0A%20%20border%3A%201px%20solid%20%23CCCCCC%3B%0A%20%20border%2Dradius%3A%205px%3B%0A%0A%20%20background%2Dcolor%3A%20%23f6f6f6%3B%0A%20%20font%2Dsize%3A%2013px%3B%0A%20%20line%2Dheight%3A%201%2E3%3B%0A%7D%0A%20%20%23TOC%20%2Etoctitle%20%7B%0A%20%20%20%20font%2Dweight%3A%20bold%3B%0A%20%20%20%20font%2Dsize%3A%2015px%3B%0A%20%20%20%20margin%2Dleft%3A%205px%3B%0A%20%20%7D%0A%0A%20%20%23TOC%20ul%20%7B%0A%20%20%20%20padding%2Dleft%3A%2040px%3B%0A%20%20%20%20margin%2Dleft%3A%20%2D1%2E5em%3B%0A%20%20%20%20margin%2Dtop%3A%205px%3B%0A%20%20%20%20margin%2Dbottom%3A%205px%3B%0A%20%20%7D%0A%20%20%23TOC%20ul%20ul%20%7B%0A%20%20%20%20margin%2Dleft%3A%20%2D2em%3B%0A%20%20%7D%0A%20%20%23TOC%20li%20%7B%0A%20%20%20%20line%2Dheight%3A%2016px%3B%0A%20%20%7D%0A%0Atable%20%7B%0A%20%20margin%3A%201em%20auto%3B%0A%20%20border%2Dwidth%3A%201px%3B%0A%20%20border%2Dcolor%3A%20%23DDDDDD%3B%0A%20%20border%2Dstyle%3A%20outset%3B%0A%20%20border%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0A%20%20border%2Dwidth%3A%202px%3B%0A%20%20padding%3A%205px%3B%0A%20%20border%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0A%20%20border%2Dwidth%3A%201px%3B%0A%20%20border%2Dstyle%3A%20inset%3B%0A%20%20line%2Dheight%3A%2018px%3B%0A%20%20padding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0A%20%20border%2Dleft%2Dstyle%3A%20none%3B%0A%20%20border%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0A%20%20background%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0A%0Ap%20%7B%0A%20%20margin%3A%200%2E5em%200%3B%0A%7D%0A%0Ablockquote%20%7B%0A%20%20background%2Dcolor%3A%20%23f6f6f6%3B%0A%20%20padding%3A%200%2E25em%200%2E75em%3B%0A%7D%0A%0Ahr%20%7B%0A%20%20border%2Dstyle%3A%20solid%3B%0A%20%20border%3A%20none%3B%0A%20%20border%2Dtop%3A%201px%20solid%20%23777%3B%0A%20%20margin%3A%2028px%200%3B%0A%7D%0A%0Adl%20%7B%0A%20%20margin%2Dleft%3A%200%3B%0A%7D%0A%20%20dl%20dd%20%7B%0A%20%20%20%20margin%2Dbottom%3A%2013px%3B%0A%20%20%20%20margin%2Dleft%3A%2013px%3B%0A%20%20%7D%0A%20%20dl%20dt%20%7B%0A%20%20%20%20font%2Dweight%3A%20bold%3B%0A%20%20%7D%0A%0Aul%20%7B%0A%20%20margin%2Dtop%3A%200%3B%0A%7D%0A%20%20ul%20li%20%7B%0A%20%20%20%20list%2Dstyle%3A%20circle%20outside%3B%0A%20%20%7D%0A%20%20ul%20ul%20%7B%0A%20%20%20%20margin%2Dbottom%3A%200%3B%0A%20%20%7D%0A%0Apre%2C%20code%20%7B%0A%20%20background%2Dcolor%3A%20%23f7f7f7%3B%0A%20%20border%2Dradius%3A%203px%3B%0A%20%20color%3A%20%23333%3B%0A%7D%0Apre%20%7B%0A%20%20white%2Dspace%3A%20pre%2Dwrap%3B%20%20%20%20%2F%2A%20Wrap%20long%20lines%20%2A%2F%0A%20%20border%2Dradius%3A%203px%3B%0A%20%20margin%3A%205px%200px%2010px%200px%3B%0A%20%20padding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0A%20%20background%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0A%0Acode%20%7B%0A%20%20font%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0A%20%20font%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0A%20%20padding%3A%202px%200px%3B%0A%7D%0A%0Adiv%2Efigure%20%7B%0A%20%20text%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0A%20%20background%2Dcolor%3A%20%23FFFFFF%3B%0A%20%20padding%3A%202px%3B%0A%20%20border%3A%201px%20solid%20%23DDDDDD%3B%0A%20%20border%2Dradius%3A%203px%3B%0A%20%20border%3A%201px%20solid%20%23CCCCCC%3B%0A%20%20margin%3A%200%205px%3B%0A%7D%0A%0Ah1%20%7B%0A%20%20margin%2Dtop%3A%200%3B%0A%20%20font%2Dsize%3A%2035px%3B%0A%20%20line%2Dheight%3A%2040px%3B%0A%7D%0A%0Ah2%20%7B%0A%20%20border%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0A%20%20padding%2Dtop%3A%2010px%3B%0A%20%20padding%2Dbottom%3A%202px%3B%0A%20%20font%2Dsize%3A%20145%25%3B%0A%7D%0A%0Ah3%20%7B%0A%20%20border%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0A%20%20padding%2Dtop%3A%2010px%3B%0A%20%20font%2Dsize%3A%20120%25%3B%0A%7D%0A%0Ah4%20%7B%0A%20%20border%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0A%20%20margin%2Dleft%3A%208px%3B%0A%20%20font%2Dsize%3A%20105%25%3B%0A%7D%0A%0Ah5%2C%20h6%20%7B%0A%20%20border%2Dbottom%3A%201px%20solid%20%23ccc%3B%0A%20%20font%2Dsize%3A%20105%25%3B%0A%7D%0A%0Aa%20%7B%0A%20%20color%3A%20%230033dd%3B%0A%20%20text%2Ddecoration%3A%20none%3B%0A%7D%0A%20%20a%3Ahover%20%7B%0A%20%20%20%20color%3A%20%236666ff%3B%20%7D%0A%20%20a%3Avisited%20%7B%0A%20%20%20%20color%3A%20%23800080%3B%20%7D%0A%20%20a%3Avisited%3Ahover%20%7B%0A%20%20%20%20color%3A%20%23BB00BB%3B%20%7D%0A%20%20a%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0A%20%20%20%20text%2Ddecoration%3A%20underline%3B%20%7D%0A%20%20a%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0A%20%20%20%20text%2Ddecoration%3A%20underline%3B%20%7D%0A%0A%2F%2A%20Class%20described%20in%20https%3A%2F%2Fbenjeffrey%2Ecom%2Fposts%2Fpandoc%2Dsyntax%2Dhighlighting%2Dcss%0A%20%20%20Colours%20from%20https%3A%2F%2Fgist%2Egithub%2Ecom%2Frobsimmons%2F1172277%20%2A%2F%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%2F%2A%20Keyword%20%2A%2F%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%2F%2A%20DataType%20%2A%2F%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%2F%2A%20DecVal%20%28decimal%20values%29%20%2A%2F%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20BaseN%20%2A%2F%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20Float%20%2A%2F%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20Char%20%2A%2F%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20String%20%2A%2F%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%2F%2A%20Comment%20%2A%2F%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%2F%2A%20OtherToken%20%2A%2F%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%2F%2A%20AlertToken%20%2A%2F%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%2F%2A%20Function%20calls%20%2A%2F%20%0Acode%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%2F%2A%20ErrorTok%20%2A%2F%0A%0A" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+
+
+<div id="header">
+<h1 class="title">SurvRank vignette</h1>
+<h4 class="author"><em>Michael Laimighofer</em></h4>
+<h4 class="date"><em>2015-08-26</em></h4>
+</div>
+
+
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p><em>SurvRank</em> is a package which estimates unbiased prediction rates and performs feature selection in a high dimensional survival framework. This vignette describes the usage of <em>SurvRank</em>.</p>
+<p>In the last years generating measurements of high dimensional data sets has been increased. This increase in data collections has lead to challenges in statistical learning. In many medical and biological applications a researcher has one data set in hand and wants to select those features, which fit best to his data and how they perform on new data.</p>
+<p>In this package we try to tackle both tasks (feature selection and unbiased performance) in one unified framework. In order to obtain unbiased prediction rates, we apply a repeated double cross validation strategy. A outer cross validation loop separates the data set into a training set and a test set. Within the training data a inner cross validation loop is used to perform feature selection. In other words how many and which features should be used for predicting the test set of the outer cross validation. This feature selection uses different ranking algorithms to rank features according to their influence on the response. Determining the cut-off of the ranked predictors we use the C-index of Uno et al, measuring the ‘predictiveness’ of the features on new data. By repetition we yield also the variance of different cross validation folds. In order to estimate the prediction performance of the derived classifier we again use the C-index of Uno et al.</p>
+<p>For identifying the best features on the whole data set, we use the information gained within the repeated nested CV.</p>
+<div id="applying-the-package-survrank" class="section level2">
+<h2>Applying the package <em>SurvRank</em></h2>
+<p>Main function within the package is:</p>
+<pre><code>CVrankSurv_fct(data, t.times, cv.out, cv.in, fs.method = &quot;lasso.rank&quot;,
+  nr.var = 10, sd1 = 0.95, ncl = 1, weig.t = T, n1 = 0.1,
+  c.time = 10, ...)</code></pre>
+<p>where the user defines the number of repetitions <em>t.times</em>, the number of outer CV folds <em>cv.out</em> and inner CVs <em>cv.in</em> and <em>c.time</em> for the incident estimator of the C-index. In addition the user supplies the <em>data</em> as list, the ranking method in <em>fs.method</em> and the number of variables <em>nr.var</em> up to which maximum number of features the algorithm should optimize. If parallel computing is available, the number of clusters <em>ncl</em> should be set. A remark to the number of <em>cv.out</em> and <em>cv.in</em>: this should be set according to the number of events vs no events in the survival setting and the number of observations in total. If there is only a small number of subjects in the data set, the double CV resulst in too stratified sub datasets. As in the algorithm always stratification is applied, having the same ratio of cases and controls in the CV folds as in the whole data, we recommend the following rule of thumb: if the number of subjects is less than 100, set <em>cv.in</em> and <em>cv.out</em> to 5. Otherwise set both to 10. Adjust the parameter t.times to have at least 100 CV runs (=t.times*cv.out), which are used for our final feature selection. The maximum number of variables in the model can be set to 30 or 50.</p>
+<div id="ranking-function---lasso.rank" class="section level3">
+<h3>Ranking function - “lasso.rank”</h3>
+<p>This is the default ranking method. The features are ranked according to their occurence in a Lasso-model.</p>
+</div>
+<div id="ranking-function---cox.rank" class="section level3">
+<h3>Ranking function - “cox.rank”</h3>
+<p>The features are ranked according to their univariate log rank score statistics.</p>
+</div>
+<div id="ranking-function---randcox.rank" class="section level3">
+<h3>Ranking function - “randcox.rank”</h3>
+<p>This is a two step procedure, first we subselect a set of features with lasso. In the second step we randomly subselect a number of features into a multivariate cox model and calculate each z-statistics. This second step is repeated several times (default 500). In the end, we calculate the mean of the z-statistics for each feature and rank accordingly.</p>
+</div>
+<div id="ranking-function---conc.rank" class="section level3">
+<h3>Ranking function - “conc.rank”</h3>
+<p>The features are ranked according to their univariate concordance of the survival response.</p>
+</div>
+<div id="ranking-function---rf.rank" class="section level3">
+<h3>Ranking function - “rf.rank”</h3>
+<p>Within a survival random forest the variable importance is used as ranking criterion in this approach.</p>
+</div>
+<div id="ranking-function---boost.rank" class="section level3">
+<h3>Ranking function - “boost.rank”</h3>
+<p>We apply a model based boosting algorithm. The features are ranked according to their selection frequency.</p>
+</div>
+<div id="ranking-function---rpart.rank" class="section level3">
+<h3>Ranking function - “rpart.rank”</h3>
+<p>Here we use regression and partitioning trees in order to derive a ranking of predictors. Similar to the random forest approach we use the variable importance as ranking criterion.</p>
+</div>
+<div id="ranking-function---wang.rank" class="section level3">
+<h3>Ranking function - “wang.rank”</h3>
+<p>This ranking function is based on the bootstrap ranking presented in Wang et al. Not recommended to use, because of computation time.</p>
+<!--  ### Ranking function - "itBMA.rank"
+
+First ranking the features, according to "cox.rank" and applying with these features Bayesian model averaging. Features are ranked according to their posterior probability that a variable is non-zero.
+
+-->
+</div>
+</div>
+<div id="results" class="section level2">
+<h2>Results</h2>
+<p>How can we now interpret the output? In order to evaluate the output of <em>CVrankSurv_fct</em> the functions:</p>
+<pre><code>riskscore_fct(cv.ob, data, th = 0.5, surv.tab = c(0.5), f = NA,
+  fix.var = NA, list.t = &quot;unweighted&quot;, ncl = 10, plt = F, ...)</code></pre>
+<p>and</p>
+<pre><code>plot_CVsurv(cv.ob, data, file = &quot;test.surv.pdf&quot;, ...)</code></pre>
+<p>show details on the results. In <em>riskscore_fct</em> decision is made how the most predictive features are selected. The argument <em>list.t</em> defines the final selected features. Different options are available: - “weighted”: default and recommended method. Features are weighted according to their performance on the outer CV folds. Features with less than 0.5 C-index get no weight. Features “in the model” are selected according to their weighted selection frequency by using majority voting (threshold <em>th</em> &gt;0.5). - “unweighted”: no weighting is applied and predictors are chosen by majority voting (treshold <em>th</em> &gt;0.5) - “rank”: - “top1se”: similar to “unweighted”. But using a sparsity criterion. Cut-off - “cluster”: applying k-means clustering with two clusters, identifying a ‘informative’ cluster and a noise batch, using the ranking matrix of the CV runs. - “final”: runs inner CV appraoch on whole data set</p>
+<p>The pdf of figures created in <em>plot_CVsurv</em> shows some standard plots, which we think are useful for further analysis and interpretation.</p>
+<p>In the pdf the following pages are created: 1) histogram of number of selected features per CV run 2) scatterplot: survival AUC performance per run on the outer test set 3) boxplot: survival AUC performance per run on the outer test set 4) similar to 3) including the standard error of the mean 5) boxplot: averaging per CV obtaining <em>t.times</em> number of survival AUCs 6) heatmap: ranks of features per CV run 7) heatmap: survival AUC per CV run (not so important) 8) selection frequencies of features</p>
+<p>Finally if you want to predict new data:</p>
+<pre><code>risk_newdat(dat_new, sel_names, dat_old, k.cv = 10, c.time = NA,
+  detail = F, plot = F, surv.tab = c(0.5), mcox = T)</code></pre>
+<p>Providing training data as well test data, in order to estimate the performance on unseen data using the C-index.</p>
+</div>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

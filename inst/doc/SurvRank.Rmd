@@ -1,0 +1,113 @@
+---
+title: "SurvRank vignette"
+author: "Michael Laimighofer"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{SurvRank}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Introduction
+
+*SurvRank* is a package which estimates unbiased prediction rates and performs feature selection in a high dimensional survival framework. This vignette describes the usage of *SurvRank*.
+
+In the last years generating measurements of high dimensional data sets has been increased. This increase in data collections has lead to challenges in statistical learning. In many medical and biological applications a researcher has one data set in hand and wants to select those features, which fit best to his data and how they perform on new data. 
+
+In this package we try to tackle both tasks (feature selection and unbiased performance) in one unified framework. In order to obtain unbiased prediction rates, we apply a repeated double cross validation strategy. A outer cross validation loop separates the data set into a training set and a test set. Within the training data a inner cross validation loop is used to perform feature selection. In other words how many and which features should be used for predicting the test set of the outer cross validation. This feature selection uses different ranking algorithms to rank features according to their influence on the response. Determining the cut-off of the ranked predictors we use the C-index of Uno et al, measuring the 'predictiveness' of the features on new data. By repetition we yield also the variance of different cross validation folds. In order to estimate the prediction performance of the derived classifier we again use the C-index of Uno et al. 
+
+For identifying the best features on the whole data set, we use the information gained within the repeated nested CV. 
+
+## Applying the package *SurvRank*
+
+Main function within the package is:
+```
+CVrankSurv_fct(data, t.times, cv.out, cv.in, fs.method = "lasso.rank",
+  nr.var = 10, sd1 = 0.95, ncl = 1, weig.t = T, n1 = 0.1,
+  c.time = 10, ...)
+```
+where the user defines the number of repetitions *t.times*, the number of outer CV folds *cv.out* and inner CVs *cv.in* and *c.time* for the incident estimator of the C-index. In addition the user supplies the *data* as list, the ranking method in *fs.method* and the number of variables *nr.var* up to which maximum number of features the algorithm should optimize. If parallel computing is available, the number of clusters *ncl* should be set. 
+A remark to the number of *cv.out* and *cv.in*: this should be set according to the number of events vs no events in the survival setting and the number of observations in total. If there is only a small number of subjects in the data set, the double CV resulst in too stratified sub datasets. As in the algorithm always stratification is applied, having the same ratio of cases and controls in the CV folds as in the whole data, we recommend the following rule of thumb: if the number of subjects is less than 100, set *cv.in* and *cv.out* to 5. Otherwise set both to 10. Adjust the parameter t.times to have at least 100 CV runs (=t.times*cv.out), which are used for our final feature selection. 
+The maximum number of variables in the model can be set to 30 or 50.
+
+### Ranking function - "lasso.rank"
+
+This is the default ranking method. The features are ranked according to their occurence in a Lasso-model. 
+
+### Ranking function - "cox.rank"
+
+The features are ranked according to their univariate log rank score statistics. 
+
+### Ranking function - "randcox.rank"
+
+This is a two step procedure, first we subselect a set of features with lasso. In the second step we randomly subselect a number of features into a multivariate cox model and calculate each z-statistics. This second step is repeated several times (default 500). In the end, we calculate the mean of the z-statistics for each feature and rank accordingly.
+
+### Ranking function - "conc.rank"
+
+The features are ranked according to their univariate concordance of the survival response.
+
+### Ranking function - "rf.rank"
+
+Within a survival random forest the variable importance is used as ranking criterion in this approach.
+
+### Ranking function - "boost.rank"
+
+We apply a model based boosting algorithm. The features are ranked according to their selection frequency.
+
+### Ranking function - "rpart.rank"
+
+Here we use regression and partitioning trees in order to derive a ranking of predictors. Similar to the random forest approach we use the variable importance as ranking criterion.
+
+### Ranking function - "wang.rank"
+
+This ranking function is based on the bootstrap ranking presented in Wang et al. Not recommended to use, because of computation time.
+
+<!--  ### Ranking function - "itBMA.rank"
+
+First ranking the features, according to "cox.rank" and applying with these features Bayesian model averaging. Features are ranked according to their posterior probability that a variable is non-zero.
+
+--> 
+
+## Results
+
+How can we now interpret the output? In order to evaluate the output of *CVrankSurv_fct* the functions:
+```
+riskscore_fct(cv.ob, data, th = 0.5, surv.tab = c(0.5), f = NA,
+  fix.var = NA, list.t = "unweighted", ncl = 10, plt = F, ...)
+```
+and 
+```
+plot_CVsurv(cv.ob, data, file = "test.surv.pdf", ...)
+```
+show details on the results. In *riskscore_fct* decision is made how the most predictive features are selected. The argument *list.t* defines the final selected features. Different options are available:
+- "weighted": default and recommended method. Features are weighted according to their performance on the outer CV folds. Features with less than 0.5 C-index get no weight. Features "in the model" are selected according to their weighted selection frequency by using majority voting (threshold *th* >0.5).
+- "unweighted": no weighting is applied and predictors are chosen by majority voting (treshold *th* >0.5)
+- "rank": 
+- "top1se": similar to "unweighted". But using a sparsity criterion. Cut-off 
+- "cluster": applying k-means clustering with two clusters, identifying a 'informative' cluster and a noise batch, using the ranking matrix of the CV runs.
+- "final": runs inner CV appraoch on whole data set
+
+The pdf of figures created in *plot_CVsurv* shows some standard plots, which we think are useful for further analysis and interpretation. 
+
+In the pdf the following pages are created:
+1) histogram of number of selected features per CV run
+2) scatterplot: survival AUC performance per run on the outer test set
+3) boxplot: survival AUC performance per run on the outer test set
+4) similar to 3) including the standard error of the mean
+5) boxplot: averaging per CV obtaining *t.times* number of survival AUCs
+6) heatmap: ranks of features per CV run
+7) heatmap: survival AUC per CV run (not so important)
+8) selection frequencies of features
+
+Finally if you want to predict new data:
+```
+risk_newdat(dat_new, sel_names, dat_old, k.cv = 10, c.time = NA,
+  detail = F, plot = F, surv.tab = c(0.5), mcox = T)
+```
+Providing training data as well test data, in order to estimate the performance on unseen data using the C-index.
+
+
+
+
+
